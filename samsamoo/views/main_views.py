@@ -5,11 +5,16 @@ from werkzeug.utils import redirect
 bp = Blueprint('main', __name__, url_prefix='/')
 
 
-@bp.route('/')
-def index():
+@bp.route('/home')
+def hello():
     return 'Hello!'
 
 
 @bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     return redirect(url_for('auth.signup'))
+
+
+@bp.route('/', methods=['GET', 'POST'])
+def login():
+    return redirect(url_for('auth.login'))
