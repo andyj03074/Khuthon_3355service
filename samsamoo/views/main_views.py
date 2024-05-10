@@ -1,24 +1,21 @@
-from flask import Blueprint, url_for, request
-from werkzeug.utils import redirect
+from flask import Blueprint, request, jsonify
 
 from samsamoo.models import Funding, Company
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
 
-@bp.route('/home', methods=['GET'])
+@bp.route('home', methods=['GET'])
 def home():
-    data = {}
+    data = []
     if request.method == 'GET':
         new_company_list = Company.query.order_by(Company.date_created.desc()).limit(4)
-        data = {
-            'new_company1_name': new_company_list[0].company_name,
-            'new_company1_data': new_company_list[0].company_short_data,
-            'nem_company2_name': new_company_list[1].company_name,
-            'new_company2_data': new_company_list[1].company_short_data,
-            'new_company3_name': new_company_list[2].company_name,
-            'new_company3_data': new_company_list[2].company_short_data,
-            'new_company4_name': new_company_list[3].company_name,
-            'new_company4_data': new_company_list[3].company_short_data
-        }
-    return data
+        recommended_company_list = Company.query.order_by(Company.similarity.desc()).limit(4)
+        for i in range(4):
+            dic = {"name": new_company_list[i].company_name, "data": new_company_list[i].company_short_data}
+            data.append(dic)
+        for i in range(4):
+            dic = {"name": recommended_company_list[i].company_name, "data": recommended_company_list[i].company_short_data}
+            data.append(dic)
+
+    return jsonify(data)
