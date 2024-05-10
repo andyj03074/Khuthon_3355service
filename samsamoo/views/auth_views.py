@@ -1,45 +1,44 @@
-from flask import Blueprint, render_template, url_for, request, flash, session
+from flask import Blueprint, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import redirect
 
 from samsamoo import db
-from samsamoo.forms import UserCreateForm, UserLoginForm
 from samsamoo.models import User
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('login', __name__, url_prefix='/login')
 
 
 @bp.route('/signup/', methods=['GET', 'POST'])
 def signup():
-    form = UserCreateForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        user = User(username=form.username.data, password=generate_password_hash(form.password1.data), email=form.email.data)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('main.index'))
+    status = {"result": "success"}
+    if request.method == 'POST':
+        data = request.json
+        username = data['username']
+        email = data['email']
+        pwd = data['password']
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            user = User(username=username, password=generate_password_hash(pwd), email=email)
+            db.session.add(user)
+            db.session.commit()
+        else:
+            status["result"] = "fail"
 
-    else: flash('이미 존재하는 사용자입니다')
-
-    return render_template('auth/signup.html', form=form)
+    return status
 
 
 @bp.route('/', methods=['GET', 'POST'])
 def login():
-    form = UserLoginForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        error = None
-        user = User.query.filter_by(username=form.username.data).first()
-        if not user:
-            error = '존재하지 않는 사용자입니다'
-
-        elif not check_password_hash(user.password, form.password.data):
-            error = ('비밀번호가 올바르지 않습니다')
-
-        if error is None:
+    status = {"result": "success"}
+    if request.method == 'POST':
+        data = request.json
+        email = data['email']
+        user = User.query.filter_by(email=email).first()
+        pwd_receive = data['password']
+        if user is not None and check_password_hash(user.password, pwd_receive):
             session.clear()
             session['user_id'] = user.id
-            return redirect(url_for('main.hello'))
+            return status
 
-        flash(error)
-
-    return render_template('auth/login.html', form=form)
+        else:
+            status["result"] = "fail"
+            return status
