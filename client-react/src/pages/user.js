@@ -17,8 +17,12 @@ function User({setLoginState, setLogurlState}){
         <>
             <p className="구매내역">&#x1F4B8;구매 내역 &gt;</p>
             <div className='userbox'>
-                구매 데이터
+                <p>시노팩스 -- 당첨</p>
             </div>
+        
+            
+
+
             <Button variant="outline-danger" className='button' onClick={handleSubmitChange}>Log Out</Button>
 
         </>
